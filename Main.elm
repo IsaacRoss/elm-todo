@@ -4,7 +4,7 @@ import Html.Attributes exposing (..)
 import Html exposing (..)
 import Html.App as App
 import Json.Decode as Json
-import Html.Events exposing (keyCode, on, onInput, onCheck)
+import Html.Events exposing (keyCode, on, onInput, onCheck, onClick)
 
 
 type alias Todo =
@@ -116,6 +116,9 @@ update msg model =
             in
                 { model | todos = List.map updateTodo model.todos }
 
+        Filter filterState ->
+            { model | filter = filterState }
+
         _ ->
             model
 
@@ -168,10 +171,57 @@ view model =
                 ]
             , section [ class "main" ]
                 [ ul [ class "todo-list" ]
-                    (List.map todoView model.todos)
+                    (List.map todoView (filteredTodos model))
+                ]
+            , footer [ class "footer" ]
+                [ span [ class "todo-count" ]
+                    [ strong []
+                        [ model.todos
+                            |> List.filter (\todo -> todo.completed == False)
+                            |> List.length
+                            |> toString
+                            |> text
+                        ]
+                    , text " items left"
+                    ]
+                , ul [ class "filters" ]
+                    [ filterItemView model All
+                    , filterItemView model Active
+                    , filterItemView model Completed
+                    ]
+                , button [ class "clear-completed" ] [ text "Clear Completed" ]
                 ]
             ]
         ]
+
+
+filterItemView : Model -> FilterState -> Html Msg
+filterItemView model filterState =
+    li []
+        [ a
+            [ classList [ ( "selected", (model.filter == filterState) ) ]
+            , href "#"
+            , onClick (Filter filterState)
+            ]
+            [ text (toString filterState) ]
+        ]
+
+
+filteredTodos : Model -> List Todo
+filteredTodos model =
+    let
+        matchesFilter =
+            case model.filter of
+                All ->
+                    (\_ -> True)
+
+                Active ->
+                    (\todo -> todo.completed == False)
+
+                Completed ->
+                    (\todo -> todo.completed == True)
+    in
+        List.filter matchesFilter model.todos
 
 
 main =
