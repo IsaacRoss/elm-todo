@@ -32,6 +32,7 @@ newTodo =
     }
 
 
+initialModel : Model
 initialModel =
     { todos =
         [ { title = "The first todo"
@@ -59,6 +60,7 @@ type Msg
     | Delete Todo
     | Filter FilterState
     | UpdateField String
+    | ClearComplete
 
 
 handleKeyPress : Json.Decoder Msg
@@ -122,6 +124,9 @@ update msg model =
         Delete todo ->
             { model | todos = List.filter (\mappedTodo -> mappedTodo.identifier /= todo.identifier) model.todos }
 
+        ClearComplete ->
+            { model | todos = List.filter (\todo -> todo.completed /= True) model.todos }
+
 
 todoView : Todo -> Html Msg
 todoView todo =
@@ -159,8 +164,7 @@ view model =
         [ node "style"
             [ type' "text/css" ]
             [ text styles ]
-        , section
-            [ class "todoapp" ]
+        , section [ class "todoapp" ]
             [ header [ class "header" ]
                 [ h1 [] [ text "todos" ]
                 , input
@@ -193,7 +197,11 @@ view model =
                     , filterItemView model Active
                     , filterItemView model Completed
                     ]
-                , button [ class "clear-completed" ] [ text "Clear Completed" ]
+                , button
+                    [ class "clear-completed"
+                    , onClick ClearComplete
+                    ]
+                    [ text "Clear Completed" ]
                 ]
             ]
         ]
