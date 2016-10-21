@@ -76,7 +76,7 @@ is13 code =
         Err "not the right key code"
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UpdateField str ->
@@ -87,14 +87,16 @@ update msg model =
                 updatedTodo =
                     { currentTodo | title = str }
             in
-                { model | todo = updatedTodo }
+                ( { model | todo = updatedTodo }, Cmd.none )
 
         Add ->
-            { model
+            ( { model
                 | todos = model.todo :: model.todos
                 , todo = { newTodo | identifier = model.nextIdentifier }
                 , nextIdentifier = model.nextIdentifier + 1
-            }
+              }
+            , Cmd.none
+            )
 
         Complete todo ->
             let
@@ -104,9 +106,11 @@ update msg model =
                     else
                         thisTodo
             in
-                { model
+                ( { model
                     | todos = List.map updateTodo model.todos
-                }
+                  }
+                , Cmd.none
+                )
 
         Uncomplete todo ->
             let
@@ -116,16 +120,16 @@ update msg model =
                     else
                         thisTodo
             in
-                { model | todos = List.map updateTodo model.todos }
+                ( { model | todos = List.map updateTodo model.todos }, Cmd.none )
 
         Filter filterState ->
-            { model | filter = filterState }
+            ( { model | filter = filterState }, Cmd.none )
 
         Delete todo ->
-            { model | todos = List.filter (\mappedTodo -> mappedTodo.identifier /= todo.identifier) model.todos }
+            ( { model | todos = List.filter (\mappedTodo -> mappedTodo.identifier /= todo.identifier) model.todos }, Cmd.none )
 
         ClearComplete ->
-            { model | todos = List.filter (\todo -> todo.completed /= True) model.todos }
+            ( { model | todos = List.filter (\todo -> todo.completed /= True) model.todos }, Cmd.none )
 
 
 todoView : Todo -> Html Msg
@@ -235,8 +239,9 @@ filteredTodos model =
 
 main : Program Never
 main =
-    App.beginnerProgram
-        { model = initialModel
+    App.program
+        { init = ( initialModel, Cmd.none )
         , update = update
         , view = view
+        , subscriptions = \_ -> Sub.none
         }
