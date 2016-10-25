@@ -6,6 +6,12 @@
     <script type="text/javascript" src="elm.js"></script>  
     <script>
       var app = Elm.Main.fullscreen()
+      app.ports.storage.subscribe(function(data){
+        localStorage.setItem('todo', JSON.stringify(data))
+      })
+      var currentModel = localStorage.getItem('todo')
+      app.ports.storageInput.send(JSON.parse(currentModel))
+      window.app = app
     </script>
   </body>
 </html>
